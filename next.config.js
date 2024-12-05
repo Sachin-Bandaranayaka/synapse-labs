@@ -10,16 +10,11 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-      crypto: require.resolve('crypto-browserify'),
-    };
-    return config;
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'synapse-labs.onrender.com'],
+    },
   },
 }
 
-module.exports = nextConfig 
+module.exports = nextConfig
