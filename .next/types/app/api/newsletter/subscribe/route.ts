@@ -1,4 +1,4 @@
-// File: c:\Users\sachi\Documents\synapse_labs\src\app\api\newsletter\subscribe\route.ts
+// File: C:\Users\sachi\Documents\synapse_labs\src\app\api\newsletter\subscribe\route.ts
 import * as entry from '../../../../../../src/app/api/newsletter/subscribe/route.js'
 import type { NextRequest } from 'next/server.js'
 

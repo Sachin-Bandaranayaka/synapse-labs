@@ -1,4 +1,4 @@
-// File: c:\Users\sachi\Documents\synapse_labs\src\app\admin\blog\new\page.tsx
+// File: C:\Users\sachi\Documents\synapse_labs\src\app\admin\blog\new\page.tsx
 import * as entry from '../../../../../../src/app/admin/blog/new/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
