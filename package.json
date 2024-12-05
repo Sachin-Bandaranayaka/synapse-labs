@@ -13,7 +13,7 @@
     "deploy": "npm run build && cd functions && npm run build && cd .. && firebase deploy"
   },
   "dependencies": {
-    "@algolia/client-search": "^5.15.0",
+    "@algolia/client-search": "^4.22.1",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.1.1",
     "@meilisearch/instant-meilisearch": "^0.22.0",
@@ -21,7 +21,7 @@
     "@types/qrcode": "^1.5.5",
     "@types/react-scroll": "^1.8.10",
     "@types/uuid": "^10.0.0",
-    "algoliasearch": "^5.15.0",
+    "algoliasearch": "^4.22.1",
     "chart.js": "^4.4.7",
     "clsx": "^2.1.1",
     "crypto-browserify": "^3.12.1",
