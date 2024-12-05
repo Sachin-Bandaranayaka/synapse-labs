@@ -11,3 +11,12 @@ services:
         value: 3000
       - key: NEXT_TELEMETRY_DISABLED
         value: 1
+    buildFilter:
+      paths:
+        - src/**
+        - public/**
+        - package.json
+        - next.config.js
+        - tsconfig.json
+        - postcss.config.js
+        - tailwind.config.js

@@ -26,7 +26,6 @@
     "clsx": "^2.1.1",
     "crypto-browserify": "^3.12.1",
     "date-fns": "^2.30.0",
-    "firebase": "^9.23.0",
     "framer-motion": "^10.18.0",
     "gsap": "^3.12.4",
     "next": "14.0.4",
@@ -59,7 +58,6 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.0.4",
-    "firebase-tools": "^13.28.0",
     "jsdom": "^25.0.1",
     "vitest": "^2.1.8"
   }
