@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 4, 15;
+  --background-end-rgb: 0, 0, 0;
+  --synapse-blue: #1e3a8a;
+  --synapse-cyan: #22d3ee;
+  --background: #0a0f1e;
+  --background-light: #141b2d;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+  height: 100%;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  min-height: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Hide scrollbar but keep functionality */
+@media (min-width: 1024px) {
+  body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--synapse-cyan) transparent;
+  }
+
+  body::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  body::-webkit-scrollbar-thumb {
+    background-color: var(--synapse-cyan);
+    border-radius: 20px;
+  }
+}
+
+/* Remove all transitions temporarily to fix any scroll jank */
+* {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-primary animate-gradient-x;
+  }
+
+  .nav-link {
+    @apply text-gray-300 hover:text-white transition-colors duration-300;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-custom {
+    @apply bg-gradient-to-b from-secondary to-black;
+  }
+}
