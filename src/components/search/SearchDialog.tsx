@@ -2,15 +2,14 @@
 
 import { Fragment, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { InstantSearchNext } from 'react-instantsearch-nextjs'
-import { SearchBox, Hits } from 'react-instantsearch-hooks-web'
-import { instantMeiliSearch } from '@meilisearch/instant-meilisearch'
+import { InstantSearch, SearchBox, Hits } from 'react-instantsearch-hooks-web'
+import algoliasearch from 'algoliasearch'
 import Link from 'next/link'
 import Image from 'next/image'
 
-const searchClient = instantMeiliSearch(
-  process.env.NEXT_PUBLIC_MEILISEARCH_HOST!,
-  process.env.NEXT_PUBLIC_MEILISEARCH_SEARCH_KEY!
+const searchClient = algoliasearch(
+  process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || '',
+  process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || ''
 )
 
 interface SearchResult {
@@ -83,7 +82,7 @@ export default function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
               leaveTo="opacity-0 scale-95"
             >
               <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-secondary p-6 shadow-xl transition-all">
-                <InstantSearchNext searchClient={searchClient} indexName="content">
+                <InstantSearch searchClient={searchClient} indexName="content">
                   <SearchBox
                     placeholder="Search blog posts and projects..."
                     classNames={{
@@ -105,7 +104,7 @@ export default function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
                       }}
                     />
                   </div>
-                </InstantSearchNext>
+                </InstantSearch>
               </Dialog.Panel>
             </Transition.Child>
           </div>
