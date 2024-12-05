@@ -16,6 +16,7 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
   height: 100%;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 body {
@@ -47,9 +48,29 @@ body {
   }
 }
 
-/* Remove all transitions temporarily to fix any scroll jank */
+/* Optimize animations for performance */
+@layer utilities {
+  .optimize-gpu {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    will-change: transform;
+  }
+}
+
+/* Optimize transitions */
 * {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable animations on devices that prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @layer components {
@@ -65,5 +86,21 @@ body {
 @layer utilities {
   .bg-gradient-custom {
     @apply bg-gradient-to-b from-secondary to-black;
+  }
+
+  @keyframes gradient-x {
+    0% {
+      transform: translateX(-100%);
+    }
+    50% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .animate-gradient-x {
+    animation: gradient-x 3s linear infinite;
   }
 }

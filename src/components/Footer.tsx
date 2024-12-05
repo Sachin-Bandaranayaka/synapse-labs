@@ -1,12 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { SocialIcons } from '@/components/icons/SocialIcons'
-import { db } from '@/lib/firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { toast } from 'react-hot-toast'
 
 const quickLinks = [
@@ -33,30 +31,47 @@ const socialLinks = {
 
 export default function Footer() {
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value)
+    setStatus('idle')
+    setMessage('')
+  }, [])
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
 
-    setLoading(true)
+    setStatus('loading')
     try {
-      await addDoc(collection(db, 'newsletter_subscribers'), {
-        email,
-        subscribedAt: serverTimestamp(),
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
       })
-      toast.success('Successfully subscribed to newsletter!')
-      setEmail('')
+
+      const data = await response.json()
+      
+      if (response.ok) {
+        setStatus('success')
+        setMessage(data.message)
+        setEmail('')
+      } else {
+        setStatus('error')
+        setMessage(data.message)
+      }
     } catch (error) {
-      console.error('Error subscribing to newsletter:', error)
-      toast.error('Failed to subscribe. Please try again.')
+      setStatus('error')
+      setMessage('Failed to subscribe. Please try again.')
     }
-    setLoading(false)
-  }
+  }, [email])
 
   return (
-    <footer className="bg-background-light pt-20 pb-10">
-      <div className="container mx-auto px-4">
+    <footer className="bg-background relative overflow-hidden">
+      <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Company Info */}
           <div>
@@ -125,22 +140,34 @@ export default function Footer() {
             <p className="text-gray-400 mb-6">
               Subscribe to our newsletter to receive updates and insights.
             </p>
-            <form onSubmit={handleSubscribe} className="space-y-4">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full px-4 py-2 bg-background border border-gray-700 rounded-lg focus:outline-none focus:border-synapse-cyan"
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full px-4 py-2 bg-synapse-cyan text-background rounded-lg hover:bg-synapse-cyan/90 transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Subscribing...' : 'Subscribe'}
-              </button>
+            <form onSubmit={handleSubmit} className="max-w-md mx-auto mb-8">
+              <div className="relative">
+                <input
+                  ref={inputRef}
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder="Enter your email"
+                  className="w-full px-6 py-3 rounded-lg bg-white/5 border border-white/10 
+                            focus:border-synapse-cyan focus:outline-none focus:ring-1 focus:ring-synapse-cyan
+                            transition-all duration-200 transform-gpu"
+                  disabled={status === 'loading'}
+                />
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="absolute right-2 top-2 px-4 py-1 rounded-md bg-synapse-cyan/20 
+                            hover:bg-synapse-cyan/30 text-synapse-cyan transition-all duration-200
+                            disabled:opacity-50 disabled:cursor-not-allowed transform-gpu"
+                >
+                  {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
+                </button>
+              </div>
+              {message && (
+                <p className={`mt-2 text-sm ${status === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                  {message}
+                </p>
+              )}
             </form>
           </div>
         </div>
@@ -148,7 +175,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="border-t border-gray-800 pt-8">
           <p className="text-center text-gray-400">
-            © {new Date().getFullYear()} Synapse Labs. All rights reserved.
+            {new Date().getFullYear()} Synapse Labs. All rights reserved.
           </p>
         </div>
       </div>

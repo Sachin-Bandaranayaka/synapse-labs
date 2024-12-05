@@ -1,13 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Allow anyone to write to contacts collection
     match /contacts/{document} {
       allow write: if true;
       allow read: if false;
     }
-    match /newsletter/{document} {
-      allow write: if true;
-      allow read: if false;
+    
+    // Allow anyone to write to newsletter_subscribers collection
+    match /newsletter_subscribers/{document} {
+      // Allow write if the document doesn't exist (new subscription)
+      // or if it's being updated by the same email
+      allow write: if 
+        !exists(/databases/$(database)/documents/newsletter_subscribers/$(document)) ||
+        request.resource.data.email == resource.data.email;
+      
+      // Allow read for checking duplicate emails
+      allow read: if request.query.limit <= 1 
+        && request.query.filters.size() == 1
+        && request.query.filters[0].field_path == "email";
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

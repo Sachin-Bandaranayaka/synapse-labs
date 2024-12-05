@@ -9,10 +9,11 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "algolia:upload": "ts-node scripts/algolia-upload.ts"
   },
   "dependencies": {
-    "@algolia/client-search": "^4.22.1",
+    "@algolia/client-search": "^4.24.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.1.1",
     "@meilisearch/instant-meilisearch": "^0.22.0",
@@ -25,6 +26,7 @@
     "chart.js": "^4.4.7",
     "clsx": "^2.1.1",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.4.7",
     "firebase": "9.23.0",
     "framer-motion": "^10.18.0",
     "gsap": "^3.12.4",
@@ -59,6 +61,7 @@
     "eslint": "^8.56.0",
     "eslint-config-next": "14.0.4",
     "jsdom": "^25.0.1",
+    "ts-node": "^10.9.2",
     "vitest": "^2.1.8"
   }
 }
