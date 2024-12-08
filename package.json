@@ -10,13 +10,15 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "algolia:upload": "ts-node scripts/algolia-upload.ts"
+    "algolia:upload": "ts-node scripts/algolia-upload.ts",
+    "setup-admin": "node scripts/setup-admin.js"
   },
   "dependencies": {
     "@algolia/client-search": "^4.24.0",
     "@headlessui/react": "^2.2.0",
     "@heroicons/react": "^2.1.1",
     "@meilisearch/instant-meilisearch": "^0.22.0",
+    "@types/js-cookie": "^3.0.6",
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
     "@types/react-scroll": "^1.8.10",
@@ -30,6 +32,7 @@
     "firebase": "9.23.0",
     "framer-motion": "^10.18.0",
     "gsap": "^3.12.4",
+    "js-cookie": "^3.0.5",
     "next": "14.0.4",
     "nodemailer": "^6.9.16",
     "otplib": "^12.0.1",
@@ -52,7 +55,7 @@
     "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/google.maps": "^3.58.1",
-    "@types/node": "^20.10.5",
+    "@types/node": "^20.17.9",
     "@types/react": "^18.2.45",
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.3.4",
