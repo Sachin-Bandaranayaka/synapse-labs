@@ -14,6 +14,8 @@ import { UserRole, UserPermissions, rolePermissions } from '@/types/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { db, auth } from '@/lib/firebase'
 import { User } from '@/lib/types'
+import { toast } from 'react-hot-toast'
+import Cookies from 'js-cookie'
 
 interface AuthContextType {
   user: User | null;
@@ -25,7 +27,15 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType)
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  loading: true,
+  userRole: null,
+  permissions: null,
+  signIn: async () => {},
+  signOut: async () => {},
+  resetPassword: async () => {},
+})
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -35,47 +45,118 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
+    console.log('Setting up auth listener')
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch user data from Firestore
-        const userDocRef = doc(db, 'users', firebaseUser.uid)
-        const userDoc = await getDoc(userDocRef)
-        const userData = userDoc.data()
-        
-        // Combine Firebase Auth user with Firestore data
-        const fullUser = {
-          ...firebaseUser,
-          role: userData?.role as UserRole,
-          twoFactorEnabled: userData?.twoFactorEnabled,
-          twoFactorSecret: userData?.twoFactorSecret,
-          backupCodes: userData?.backupCodes,
-        } as User
+      try {
+        if (firebaseUser) {
+          console.log('User found:', firebaseUser.email)
+          setLoading(true)
+          
+          const userDocRef = doc(db, 'users', firebaseUser.uid)
+          const userDoc = await getDoc(userDocRef)
+          const userData = userDoc.data()
+          
+          if (!userData) {
+            console.error('No user data found in Firestore')
+            await firebaseSignOut(auth)
+            toast.error('User data not found')
+            setUser(null)
+            setUserRole(null)
+            setPermissions(null)
+            Cookies.remove('user')
+            return
+          }
 
-        setUser(fullUser)
-        setUserRole(userData?.role as UserRole)
-        setPermissions(rolePermissions[userData?.role as UserRole])
-      } else {
-        setUser(null)
-        setUserRole(null)
-        setPermissions(null)
+          const role = userData.role as UserRole
+          const fullUser = {
+            ...firebaseUser,
+            role,
+            twoFactorEnabled: userData.twoFactorEnabled,
+            twoFactorSecret: userData.twoFactorSecret,
+            backupCodes: userData.backupCodes,
+          } as User
+
+          console.log('Setting user data:', { email: fullUser.email, role })
+          setUser(fullUser)
+          setUserRole(role)
+          setPermissions(rolePermissions[role])
+          
+          // Set user cookie
+          Cookies.set('user', JSON.stringify({
+            uid: fullUser.uid,
+            email: fullUser.email,
+            role: role
+          }), { expires: 7 }) // 7 days expiry
+        } else {
+          console.log('No user found')
+          setUser(null)
+          setUserRole(null)
+          setPermissions(null)
+          Cookies.remove('user')
+        }
+      } catch (error) {
+        console.error('Error in auth state change:', error)
+        toast.error('Error loading user data')
+        Cookies.remove('user')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
-    return () => unsubscribe()
+    return () => {
+      console.log('Cleaning up auth listener')
+      unsubscribe()
+    }
   }, [])
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password)
+    try {
+      setLoading(true)
+      console.log('Attempting sign in:', email)
+      
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const userDocRef = doc(db, 'users', userCredential.user.uid)
+      const userDoc = await getDoc(userDocRef)
+      const userData = userDoc.data()
+
+      if (!userData || userData.role !== 'admin') {
+        console.log('User is not an admin:', userData?.role)
+        await firebaseSignOut(auth)
+        throw new Error('Unauthorized access')
+      }
+
+      console.log('Sign in successful')
+      router.replace('/admin/dashboard')
+    } catch (error) {
+      console.error('Sign in error:', error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
 
   const signOut = async () => {
-    await firebaseSignOut(auth)
-    router.push('/admin/login')
+    try {
+      setLoading(true)
+      await firebaseSignOut(auth)
+      Cookies.remove('user')
+      router.replace('/admin/login')
+    } catch (error) {
+      console.error('Sign out error:', error)
+      toast.error('Error signing out')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email)
+    try {
+      await sendPasswordResetEmail(auth, email)
+      toast.success('Password reset email sent')
+    } catch (error) {
+      console.error('Reset password error:', error)
+      throw error
+    }
   }
 
   return (
@@ -88,9 +169,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       resetPassword 
     }}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   )
 }
 
-export const useAuth = () => useContext(AuthContext) 
+export const useAuth = () => useContext(AuthContext)

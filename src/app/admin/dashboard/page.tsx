@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, setDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
+import { useAuth } from '@/context/AuthContext'
 
 interface DashboardStats {
   blogPosts: number
@@ -11,6 +12,7 @@ interface DashboardStats {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth()
   const [stats, setStats] = useState<DashboardStats>({
     blogPosts: 0,
     projects: 0,
@@ -20,18 +22,45 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchStats() {
+      if (!user) {
+        setError('Authentication required')
+        setLoading(false)
+        return
+      }
+
       try {
         setError(null)
+        
+        // Ensure collections exist
+        const collections = ['blogPosts', 'projects']
+        for (const collectionName of collections) {
+          try {
+            await getDocs(collection(db, collectionName))
+          } catch (error) {
+            console.log(`Creating ${collectionName} collection...`)
+            // Create a dummy document to initialize the collection
+            await setDoc(doc(db, collectionName, 'placeholder'), {
+              createdAt: new Date(),
+              createdBy: user.uid,
+              isPlaceholder: true
+            })
+          }
+        }
+
+        // Now fetch the stats
         const [blogSnapshot, projectsSnapshot] = await Promise.all([
           getDocs(collection(db, 'blogPosts')),
           getDocs(collection(db, 'projects')),
         ])
 
+        // Filter out placeholder documents
+        const blogCount = blogSnapshot.docs.filter(doc => !doc.data().isPlaceholder).length
+        const projectCount = projectsSnapshot.docs.filter(doc => !doc.data().isPlaceholder).length
+
         setStats({
-          blogPosts: blogSnapshot.size,
-          projects: projectsSnapshot.size,
+          blogPosts: blogCount,
+          projects: projectCount,
         })
-        toast.success('Dashboard data loaded successfully')
       } catch (error) {
         console.error('Error fetching stats:', error)
         setError('Failed to load dashboard data. Please try again.')
@@ -42,7 +71,7 @@ export default function DashboardPage() {
     }
 
     fetchStats()
-  }, [])
+  }, [user])
 
   if (loading) {
     return (
