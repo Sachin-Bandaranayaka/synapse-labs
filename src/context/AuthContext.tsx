@@ -44,6 +44,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
+  // Initialize auth state from cookie
+  useEffect(() => {
+    const userFromCookie = Cookies.get('user')
+    if (userFromCookie) {
+      try {
+        const userData = JSON.parse(userFromCookie)
+        setUser(userData as User)
+        setUserRole(userData.role as UserRole)
+        setPermissions(rolePermissions[userData.role as UserRole])
+      } catch (error) {
+        console.error('Error parsing user cookie:', error)
+        Cookies.remove('user')
+      }
+    }
+    setLoading(false)
+  }, [])
+
   useEffect(() => {
     console.log('Setting up auth listener')
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {

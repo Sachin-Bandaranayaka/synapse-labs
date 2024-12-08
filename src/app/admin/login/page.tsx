@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
 export default function AdminLogin() {
-  const { signIn, user, userRole } = useAuth()
+  const { signIn, user, userRole, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -14,12 +14,12 @@ export default function AdminLogin() {
 
   // Redirect if user is already authenticated
   useEffect(() => {
-    console.log('Auth state:', { user, userRole })
-    if (user && userRole === 'admin') {
+    console.log('Auth state:', { user, userRole, authLoading })
+    if (!authLoading && user && userRole === 'admin') {
       console.log('Redirecting to dashboard...')
       router.replace('/admin/dashboard')
     }
-  }, [user, userRole, router])
+  }, [user, userRole, authLoading, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,6 +34,24 @@ export default function AdminLogin() {
       toast.error(error.message || 'Failed to login')
       setIsSubmitting(false)
     }
+  }
+
+  // Show loading spinner only during initial auth check
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Don't show the login form if we're already authenticated
+  if (user && userRole === 'admin') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
